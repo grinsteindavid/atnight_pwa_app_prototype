@@ -1,76 +1,80 @@
-import React from 'react';
-import './App.css';
-import store from 'store';
-import axios from 'axios';
-
-const HTTP = axios.create({
-  baseURL: `https://atnight.com/api/v1/tb/`
-})
-
-window.fbAsyncInit = function () {
-  FB.init({
-    appId: '1668467996513766',
-    cookie: true,  // enable cookies to allow the server to access the session
-    xfbml: true,  // parse social plugins on this page
-    version: 'v2.8' // use graph api version 2.8
-  })
-};
-(function (d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = '//connect.facebook.net/en_US/sdk.js';
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));
+import React, { useState } from 'react'
+import { Route, Switch, Redirect } from "react-router-dom"
+import AuthService from './services/auth'
+import LoginScreen from './screens/login'
+import { Modal, Loader } from 'semantic-ui-react'
 
 function App() {
-  return (
-    <div className="App">
-      <FacebookButton />
-    </div>
-  );
-}
-
-function FacebookButton() {
-
-  const fbSignInParams = {
-    scope: 'email,user_likes',
-    return_scopes: true
-  }
-
-  function onSignInSuccess() {
-    FB.api('/me', dude => {
-      console.log(`Good to see you, ${dude.name}.`)
-      store.set('promoterName', dude.name)
-      console.log(dude.id)
-      store.set('fbid', dude.id)
-      console.log(store.get('fbid'))
-      HTTP.defaults.headers.common['fbid'] = store.get('fbid');
-      getPromoter()
+  [loadingModalState, setLoadingModalState] = useState({
+    open: false,
+    message: null
+  })
+  
+  function closeLoadingModal() {
+    setLoadingModalState({
+      open: false,
+      message: null
     })
   }
 
-  function onSignInError(error) {
-    console.log('OH NOES', error)
-    // this.$swal('OH NO', 'Your account is not authorized', 'error')
+  function openLoadingModal(message = null) {
+    setLoadingModalState({
+      open: true,
+      message
+    })
   }
 
-  async function getPromoter() {
-    try {
-      const response = await HTTP.get('/loginPromoter')
-      console.log(HTTP.defaults.headers)
-      console.log(response.data);
-      store.set('X-Authorization', response.data.AppToken)
-      console.log(store.get('X-Authorization'))
-      HTTP.defaults.headers.common['X-Authorization'] = store.get('X-Authorization');
-      // this.$router.push({ name: 'campaings' })
-    } catch (e) {
-      console.log(HTTP.defaults.headers)
-      console.log(error);
-      // this.$swal('You are not authorized', 'Please verify that you are authorized to use the app and try again', 'error')
-    }
-  }
+  return (
+    <>
+      <LoadingModal
+        open={loadingModalState.open}
+        onClose={closeLoadingModal}
+        message={loadingModalState.message}
+      />
+      
+      <Switch>
+        <Route exact path="(/login)" render={(props) => {
 
+          return (
+            AuthService.isAuthenticated()
+              ? <Redirect to='/' />
+              : <LoginScreen {...props} openLoadingModal={openLoadingModal} closeLoadingModal={closeLoadingModal} />
+          )
+        }} />
+        <Route path="/" render={(props) => {
+
+          return (
+            AuthService.authenticated()
+              ? <CampaignsScreen {...props} openLoadingModal={openLoadingModal} closeLoadingModal={closeLoadingModal} />
+              : <Redirect to='/login' />
+          )
+        }} />
+        {/* <Route component={NotFoundPage} /> */}
+      </Switch>
+    </>
+  )
 }
 
-export default App;
+function LoadingModal({ open, onClose, message }) {
+
+  return (
+    <Modal
+      basic
+      dimmer="inverted"
+      open={open}
+      // onClose={onClose}
+      closeOnEscape={false}
+      closeOnDimmerClick={false}
+      closeOnTriggerBlur={false}
+      closeOnTriggerMouseLeave={false}
+      closeOnPortalMouseLeave={false}
+      size='small'
+    >
+      <Modal.Content style={{ textAlign: 'center' }}>
+        <Loader inverted>{message || 'Loading'}</Loader>
+      </Modal.Content>
+    </Modal>
+  )
+}
+
+export default App
