@@ -1,17 +1,17 @@
-import React, { useState } from 'react'
-import { Route, Switch, Redirect } from "react-router-dom"
+import React, { useState, useEffect } from 'react'
+import { Route, Switch, Redirect, withRouter } from "react-router-dom"
 import AuthService from './services/auth'
 import LoginScreen from './screens/login'
-import CampaignScreen from './screens/campaign'
+import CampaignScreen from './screens/campaigns'
 import UserMenu from './components/user_menu'
 import { Modal, Loader } from 'semantic-ui-react'
 
-function App() {
-  [loadingModalState, setLoadingModalState] = useState({
+function App({ history }) {
+  const [loadingModalState, setLoadingModalState] = useState({
     open: false,
     message: null
   })
-  [promoterState, setPromoterState] = useState(null)
+  const [promoterState, setPromoterState] = useState(null)
   
   function closeLoadingModal() {
     setLoadingModalState({
@@ -27,11 +27,30 @@ function App() {
     })
   }
 
+  useEffect(() => {
+    async function checkUser() {
+      openLoadingModal('Loading user')
+      try {
+        const promoter = await AuthService.getPromoter(AuthService.fbid)
+        setPromoterState(promoter)
+        history.push(`/campaigns`)
+      } catch (e) {
+        console.error(e)
+        alert('Please verify that you are authorized to use the app and try again')
+      }
+      closeLoadingModal()
+    }
+
+    if (AuthService.isAuthenticated()) {
+      checkUser()
+    }
+
+  }, [])
+
   return (
     <>
       <LoadingModal
         open={loadingModalState.open}
-        onClose={closeLoadingModal}
         message={loadingModalState.message}
       />
       
@@ -51,28 +70,33 @@ function App() {
                 />
           )
         }} />
-        <Route path="/" render={(props) => {
+        <Route path="/campaigns" render={(props) => {
 
           return (
-            AuthService.authenticated()
+            AuthService.isAuthenticated()
               ? <CampaignScreen {...props} openLoadingModal={openLoadingModal} closeLoadingModal={closeLoadingModal} />
               : <Redirect to='/login' />
           )
         }} />
-        {/* <Route component={NotFoundPage} /> */}
+        <Route render={(props) => {
+          return (
+            AuthService.isAuthenticated()
+              ? <Redirect to='/campaigns' />
+              : <Redirect to='/login' />
+          )
+        }} />
       </Switch>
     </>
   )
 }
 
-function LoadingModal({ open, onClose, message }) {
+function LoadingModal({ open, message }) {
 
   return (
     <Modal
       basic
       dimmer="inverted"
       open={open}
-      // onClose={onClose}
       closeOnEscape={false}
       closeOnDimmerClick={false}
       closeOnTriggerBlur={false}
@@ -87,4 +111,4 @@ function LoadingModal({ open, onClose, message }) {
   )
 }
 
-export default App
+export default withRouter(App)

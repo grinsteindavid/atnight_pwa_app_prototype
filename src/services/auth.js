@@ -4,11 +4,11 @@ import { BASE_URL, ENVIRONMENT } from '../environment'
 
 class AuthService {
     constructor() {
-        if (ENVIRONMENT !== 'production') {
-            store.remove('fbid')
-            store.remove('X-Authorization')
-        }
-        this.fbid = Store.get('fbid')
+        // if (ENVIRONMENT !== 'production') {
+        //     store.remove('fbid')
+        //     store.remove('X-Authorization')
+        // }
+        this.fbid = store.get('fbid')
         this.http = axios.create({
             baseURL: `${BASE_URL}`
         })
@@ -20,7 +20,7 @@ class AuthService {
     }
 
     logout() {
-        Store.remove('fbid')
+        store.remove('fbid')
         store.remove('X-Authorization')
         this.fbid = null
     }
@@ -29,6 +29,7 @@ class AuthService {
         this.http.defaults.headers.common['fbid'] = fbid
         const response = await this.http.get('/loginPromoter')
         this.http.defaults.headers.common['X-Authorization'] = response.data.AppToken
+        this.fbid = fbid
         store.set('fbid', fbid)
         store.set('X-Authorization', response.data.AppToken)
         // store.set('promoterName', dude.name)

@@ -8,7 +8,7 @@ class CampaignService {
             baseURL: `${BASE_URL}`
         })
 
-        this.axios.interceptors.request.use(
+        this.http.interceptors.request.use(
             request => {
                 request.headers['fbid'] = store.get('fbid')
                 request.headers['X-Authorization'] = store.get('X-Authorization')

@@ -1,47 +1,25 @@
-import React, { useEffect } from 'react'
-import FacebookButton from './components/facebook_button'
+import React from 'react'
+import FacebookButton from '../components/facebook_button'
 import { Grid, Container, Image } from 'semantic-ui-react'
 import AuthService from '../services/auth'
 
 function LoginScreen({ history, openLoadingModal, closeLoadingModal, setPromoter }) {
-
-    useEffect(() => {
-        async function checkUser() {
-            try {
-                openLoadingModal('Loading user')
-                const promoter = await AuthService.getPromoter(AuthService.fbid)
-                setPromoter(promoter)
-                history.push(`/campaigns`)
-            } catch (e) {
-                console.error(e)
-                alert('Please verify that you are authorized to use the app and try again')
-                closeLoadingModal()
-            }
-        }
-
-        if (AuthService.isAuthenticated()) {
-            checkUser()
-        } else {
-            closeLoadingModal()
-        }
-
-    }, [AuthService.fbid])
 
     async function facebookResponse(user) {
         if (!user || user.status === "unknown") {
             return alert('Something wrong happened. Try again!')
         }
         
+        openLoadingModal('Loading user')
         try {
-            openLoadingModal('Loading user')
             const promoter = await AuthService.getPromoter(user.id)
+            history.push('/campaigns')
             setPromoter(promoter)
-            history.push(`/campaigns`)
         } catch (e) {
             console.error(e)
             alert('Please verify that you are authorized to use the app and try again')
-            closeLoadingModal()
         }
+        closeLoadingModal()
     }
 
     return (
@@ -50,7 +28,7 @@ function LoginScreen({ history, openLoadingModal, closeLoadingModal, setPromoter
                 <Grid.Row>
                     <Grid.Column>
                         <Image
-                            style={{ marginBottom: '60vh' }}
+                            style={{ marginBottom: '60vh', marginTop: '5vh' }}
                             size='medium'
                             centered
                             src='https://atnight.com/images/image-atnight-new-logo.png'
