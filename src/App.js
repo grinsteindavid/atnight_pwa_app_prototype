@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { Route, Switch, Redirect } from "react-router-dom"
 import AuthService from './services/auth'
 import LoginScreen from './screens/login'
+import CampaignScreen from './screens/campaign'
+import UserMenu from './components/user_menu'
 import { Modal, Loader } from 'semantic-ui-react'
 
 function App() {
@@ -9,6 +11,7 @@ function App() {
     open: false,
     message: null
   })
+  [promoterState, setPromoterState] = useState(null)
   
   function closeLoadingModal() {
     setLoadingModalState({
@@ -32,20 +35,27 @@ function App() {
         message={loadingModalState.message}
       />
       
+      {promoterState && <UserMenu promoter={promoterState} setPromoter={setPromoterState} />}
+      
       <Switch>
         <Route exact path="(/login)" render={(props) => {
 
           return (
             AuthService.isAuthenticated()
               ? <Redirect to='/' />
-              : <LoginScreen {...props} openLoadingModal={openLoadingModal} closeLoadingModal={closeLoadingModal} />
+              : <LoginScreen
+                  {...props}
+                  setPromoter={setPromoterState}
+                  openLoadingModal={openLoadingModal}
+                  closeLoadingModal={closeLoadingModal}
+                />
           )
         }} />
         <Route path="/" render={(props) => {
 
           return (
             AuthService.authenticated()
-              ? <CampaignsScreen {...props} openLoadingModal={openLoadingModal} closeLoadingModal={closeLoadingModal} />
+              ? <CampaignScreen {...props} openLoadingModal={openLoadingModal} closeLoadingModal={closeLoadingModal} />
               : <Redirect to='/login' />
           )
         }} />

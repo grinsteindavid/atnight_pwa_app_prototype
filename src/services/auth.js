@@ -2,7 +2,7 @@ import axios from 'axios'
 import store from 'store'
 import { BASE_URL, ENVIRONMENT } from '../environment'
 
-class Auth {
+class AuthService {
     constructor() {
         if (ENVIRONMENT !== 'production') {
             store.remove('fbid')
@@ -21,31 +21,26 @@ class Auth {
 
     logout() {
         Store.remove('fbid')
+        store.remove('X-Authorization')
         this.fbid = null
     }
     
     async getPromoter(fbid) {
         this.http.defaults.headers.common['fbid'] = fbid
-
-        try {
-            const response = await this.http.get('/loginPromoter')
-            this.http.defaults.headers.common['X-Authorization'] = response.data.AppToken
-            store.set('fbid', fbid)
-            store.set('X-Authorization', response.data.AppToken)
-            // store.set('promoterName', dude.name)
-            // console.log(`Good to see you, ${user.name}.`)
-            // console.log(user.id)
-            // console.log(store.get('fbid'))
-            // console.log(HTTP.defaults.headers)
-            // console.log(response.data)
-            // console.log(store.get('X-Authorization'))
-            // this.$router.push({ name: 'campaings' })
-        } catch (e) {
-            console.error(this.http.defaults.headers)
-            console.error(e.message)
-            alert('Please verify that you are authorized to use the app and try again')
-        }
+        const response = await this.http.get('/loginPromoter')
+        this.http.defaults.headers.common['X-Authorization'] = response.data.AppToken
+        store.set('fbid', fbid)
+        store.set('X-Authorization', response.data.AppToken)
+        // store.set('promoterName', dude.name)
+        // console.log(`Good to see you, ${user.name}.`)
+        // console.log(user.id)
+        // console.log(store.get('fbid'))
+        // console.log(HTTP.defaults.headers)
+        // console.log(response.data)
+        // console.log(store.get('X-Authorization'))
+        // this.$router.push({ name: 'campaings' })
+        return response.data
     }
 }
 
-export default new Auth()
+export default new AuthService()

@@ -3,13 +3,14 @@ import FacebookButton from './components/facebook_button'
 import { Grid, Container, Image } from 'semantic-ui-react'
 import AuthService from '../services/auth'
 
-function LoginScreen({ history, openLoadingModal, closeLoadingModal }) {
+function LoginScreen({ history, openLoadingModal, closeLoadingModal, setPromoter }) {
 
     useEffect(() => {
         async function checkUser() {
             try {
                 openLoadingModal('Loading user')
-                await AuthService.getPromoter(AuthService.fbid)
+                const promoter = await AuthService.getPromoter(AuthService.fbid)
+                setPromoter(promoter)
                 history.push(`/campaigns`)
             } catch (e) {
                 console.error(e)
@@ -33,7 +34,8 @@ function LoginScreen({ history, openLoadingModal, closeLoadingModal }) {
         
         try {
             openLoadingModal('Loading user')
-            await AuthService.getPromoter(user.id)
+            const promoter = await AuthService.getPromoter(user.id)
+            setPromoter(promoter)
             history.push(`/campaigns`)
         } catch (e) {
             console.error(e)
@@ -48,7 +50,7 @@ function LoginScreen({ history, openLoadingModal, closeLoadingModal }) {
                 <Grid.Row>
                     <Grid.Column>
                         <Image
-                            style={{ marginTop: '60vh' }}
+                            style={{ marginBottom: '60vh' }}
                             size='medium'
                             centered
                             src='https://atnight.com/images/image-atnight-new-logo.png'
