@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { Container, Card, Image, Icon, Button, Modal, Step } from 'semantic-ui-react'
+import { Container, Card, Image, Icon, Button, Modal, Step, Grid, Input, Dropdown, Rating, GridRow } from 'semantic-ui-react'
 import CampaignService from '../services/campaign'
 import PhoneInput from 'react-phone-input-2'
-import 'react-phone-input-2/lib/style.css'
+import 'react-phone-input-2/lib/bootstrap.css'
 
 function ReportScreen({ match, history, openLoadingModal, closeLoadingModal }) {
     const [reportState, setReport] = useState({
@@ -96,6 +96,15 @@ function ReportScreen({ match, history, openLoadingModal, closeLoadingModal }) {
 
 function RsvpModal({ visible, campaign, onClose }) {
     const [stepIndex, setStepIndex] = useState(0)
+    const [phoneNumberState, setPhoneNumberState] = useState('')
+
+    function phoneNumberHandler(phone) {
+        setPhoneNumberState(phone.match(/\d/g).join(''))
+    }
+
+    function stepHandler(e, { index }) {
+        setStepIndex(index)
+    }
 
     return (
         <Modal
@@ -104,9 +113,14 @@ function RsvpModal({ visible, campaign, onClose }) {
             onClose={onClose}
             size='large'
         >
-            <Modal.Content>
-                <Step.Group attached='top' fluid unstackable>
-                    <Step active={stepIndex === 0}>
+            <Modal.Header>
+                <Step.Group attached='top' fluid>
+                    <Step
+                        index={0}
+                        active={stepIndex === 0}
+                        completed={phoneNumberState.length === 10}
+                        onClick={stepHandler}
+                    >
                         <Icon name='phone' />
                         <Step.Content>
                             <Step.Title>Phone number</Step.Title>
@@ -114,7 +128,12 @@ function RsvpModal({ visible, campaign, onClose }) {
                         </Step.Content>
                     </Step>
 
-                    <Step active={stepIndex === 1}>
+                    <Step 
+                        index={1}
+                        active={stepIndex === 1} 
+                        disabled={phoneNumberState.length !== 10}
+                        onClick={stepHandler}
+                    >
                         <Icon name='user' />
                         <Step.Content>
                             <Step.Title>Guest</Step.Title>
@@ -122,27 +141,106 @@ function RsvpModal({ visible, campaign, onClose }) {
                         </Step.Content>
                     </Step>
                 </Step.Group>
+            </Modal.Header>
 
-                <PhoneInput
-                    country={'us'}
-                    onlyCountries={['us']}
-                    value={'0000000'}
-                    disableCountryCode={true}
-                    countryCodeEditable={false}
-                    // onChange={phone => this.setState({ phone })}
-                />
+            <Modal.Content scrolling>
+                {
+                    stepIndex === 0 && (
+                        <Container textAlign='center'>
+                            <PhoneInput
+                                inputStyle={{ fontSize: '1.5em' }}
+                                dropdownStyle={{ display: 'none' }}
+                                inputProps={{
+                                    name: 'phone',
+                                    required: true,
+                                    autoFocus: true
+                                }}
+                                placeholder='Phone Number'
+                                country={'us'}
+                                onlyCountries={['us']}
+                                disableDropdown={true}
+                                value={phoneNumberState}
+                                disableCountryCode={true}
+                                // countryCodeEditable={false}
+                                onChange={phoneNumberHandler}
+                            />
+                        </Container>
+                    )
+                }
+
+                {
+                    stepIndex === 1 && (
+                        <Container textAlign='center'>
+                            <Grid padded textAlign='center'>
+                                <Grid.Row>
+                                    <Grid.Column>
+                                        <Rating 
+                                            maxRating={10} 
+                                            defaultRating={7} 
+                                            icon='star'
+                                            size='massive'
+                                        />
+                                    </Grid.Column>
+                                </Grid.Row>
+
+                                <Grid.Row>
+                                    <Grid.Column>
+                                        <Button.Group size='big'>
+                                            <Button
+                                                color='pink'
+                                                icon='female'
+                                                labelPosition='left'
+                                                content="Girl"
+                                                active
+                                            />
+                                            <Button.Or />
+                                            <Button
+                                                color='blue'
+                                                icon='male'
+                                                labelPosition='right'
+                                                content="Guy"
+                                            />
+                                        </Button.Group>
+                                    </Grid.Column>
+                                </Grid.Row>
+                            </Grid>
+                        </Container>
+                    )
+                }
             </Modal.Content>
 
             <Modal.Actions>
-                <Button color='black'>
-                    Nope
-                </Button>
-                <Button
-                    positive
-                    icon='checkmark'
-                    labelPosition='right'
-                    content="Yep, that's me"
-                />
+                {
+                    stepIndex === 0 && (
+                        <Button
+                            size='large'
+                            icon='close'
+                            labelPosition='right'
+                            content="Close"
+                            onClick={onClose}
+                        />
+                    )
+                }
+
+                {
+                    stepIndex === 1 && (
+                        <Button.Group size='large'>
+                            <Button
+                                icon='close'
+                                labelPosition='left'
+                                content="Close"
+                                onClick={onClose}
+                            />
+                            <Button.Or />
+                            <Button
+                                color='green'
+                                icon='send'
+                                labelPosition='right'
+                                content="Send"
+                            />
+                        </Button.Group>
+                    )
+                }
             </Modal.Actions>
         </Modal>
     )
