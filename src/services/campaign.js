@@ -22,6 +22,11 @@ class CampaignService {
         const response = await this.http.get('/listCampaigns')
         return response.data
     }
+
+    async report(event) {
+        const response = await this.http.get(`/listReport/${event}`)
+        return response.data
+    }
 }
 
 export default new CampaignService()

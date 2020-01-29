@@ -3,6 +3,7 @@ import { Route, Switch, Redirect, withRouter } from "react-router-dom"
 import AuthService from './services/auth'
 import LoginScreen from './screens/login'
 import CampaignScreen from './screens/campaigns'
+import ReportScreen from './screens/report'
 import UserMenu from './components/user_menu'
 import { Modal, Loader } from 'semantic-ui-react'
 
@@ -28,7 +29,7 @@ function App({ history }) {
   }
 
   useEffect(() => {
-    async function checkUser() {
+    async function getUser() {
       openLoadingModal('Loading user')
       try {
         const promoter = await AuthService.getPromoter(AuthService.fbid)
@@ -42,7 +43,7 @@ function App({ history }) {
     }
 
     if (AuthService.isAuthenticated()) {
-      checkUser()
+      getUser()
     }
 
   }, [])
@@ -75,6 +76,14 @@ function App({ history }) {
           return (
             AuthService.isAuthenticated()
               ? <CampaignScreen {...props} openLoadingModal={openLoadingModal} closeLoadingModal={closeLoadingModal} />
+              : <Redirect to='/login' />
+          )
+        }} />
+        <Route path="/report/:id" render={(props) => {
+
+          return (
+            AuthService.isAuthenticated()
+              ? <ReportScreen {...props} openLoadingModal={openLoadingModal} closeLoadingModal={closeLoadingModal} />
               : <Redirect to='/login' />
           )
         }} />

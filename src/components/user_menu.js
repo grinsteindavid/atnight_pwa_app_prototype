@@ -32,7 +32,16 @@ function UserMenu({ history, promoter, setPromoter }) {
             <Menu
                 icon
                 fluid
+                fixed='top'
             >
+                <Menu.Item
+                    position='left'
+                    onClick={() => {
+                        history.goBack()
+                    }}
+                >
+                    <Icon name='chevron left' />
+                </Menu.Item>
                 <Menu.Item
                     position='right'
                     onClick={openMenuModal}
