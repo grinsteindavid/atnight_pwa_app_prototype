@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Container, Card, Image, Icon, Button, Modal, Step } from 'semantic-ui-react'
 import CampaignService from '../services/campaign'
+import PhoneInput from 'react-phone-input-2'
+import 'react-phone-input-2/lib/style.css'
 
 function ReportScreen({ match, history, openLoadingModal, closeLoadingModal }) {
     const [reportState, setReport] = useState({
@@ -121,8 +123,27 @@ function RsvpModal({ visible, campaign, onClose }) {
                     </Step>
                 </Step.Group>
 
-
+                <PhoneInput
+                    country={'us'}
+                    onlyCountries={['us']}
+                    value={'0000000'}
+                    disableCountryCode={true}
+                    countryCodeEditable={false}
+                    // onChange={phone => this.setState({ phone })}
+                />
             </Modal.Content>
+
+            <Modal.Actions>
+                <Button color='black'>
+                    Nope
+                </Button>
+                <Button
+                    positive
+                    icon='checkmark'
+                    labelPosition='right'
+                    content="Yep, that's me"
+                />
+            </Modal.Actions>
         </Modal>
     )
 }
