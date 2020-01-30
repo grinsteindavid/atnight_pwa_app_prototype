@@ -27,6 +27,15 @@ class CampaignService {
         const response = await this.http.get(`/listReport/${event}`)
         return response.data
     }
+
+    async rsvp(data) {
+        const response = await this.http.post('/rsvp', JSON.stringify(data), {
+            headers: {
+                'content-type': 'application/json'
+            }
+        })
+        return response.data
+    }
 }
 
 export default new CampaignService()

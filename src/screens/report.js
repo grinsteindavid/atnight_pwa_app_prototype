@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Container, Card, Image, Icon, Button, Modal, Step, Grid, Input, Dropdown, Rating, GridRow } from 'semantic-ui-react'
+import { Container, Card, Image, Icon, Button, Modal, Step, Grid, Input, Dropdown, Rating, GridRow, Checkbox } from 'semantic-ui-react'
 import CampaignService from '../services/campaign'
+import _ from 'lodash'
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/bootstrap.css'
 
@@ -49,8 +50,10 @@ function ReportScreen({ match, history, openLoadingModal, closeLoadingModal }) {
                 rsvpModal.visible && (
                     <RsvpModal
                         visible={rsvpModal.visible}
-                        campaign={reportState.campaign}
+                        report={reportState}
                         onClose={closeRsvpModal}
+                        openLoadingModal={openLoadingModal}
+                        closeLoadingModal={closeLoadingModal}
                     />
                 )
             }
@@ -94,8 +97,11 @@ function ReportScreen({ match, history, openLoadingModal, closeLoadingModal }) {
     )
 }
 
-function RsvpModal({ visible, campaign, onClose }) {
+function RsvpModal({ visible, report, onClose, openLoadingModal, closeLoadingModal }) {
     const [stepIndex, setStepIndex] = useState(0)
+    const [ratingState, setRatingState] = useState(7)
+    const [genderState, setGenderState] = useState(null)
+    const [chargeState, setChargeState] = useState(true)
     const [phoneNumberState, setPhoneNumberState] = useState('')
 
     function phoneNumberHandler(phone) {
@@ -104,6 +110,48 @@ function RsvpModal({ visible, campaign, onClose }) {
 
     function stepHandler(e, { index }) {
         setStepIndex(index)
+    }
+
+    function onRateHandler(e, { rating }) {
+        setRatingState(rating)
+    }
+
+    function genderHandler(e, {gender}) {
+        setGenderState(gender)
+    }
+
+    function chargeHandler(e, { checked }) {
+        setChargeState(checked)
+    }
+
+    async function sendRsvp() {
+        openLoadingModal()
+
+        let data = {
+            event_id: report.id,
+            client_id: report.client_id,
+            phone: phoneNumberState.match(/\d/g).join('')
+        }
+
+        if (_.get(report, 'campaign.rating', 0)) {
+            data.rating = ratingState
+        }
+        if (_.get(report, 'campaign.gender', 0)) {
+            data.gender = genderState
+        }
+        if (_.get(report, 'campaign.charge', 0)) {
+            data.charge = chargeState
+        }
+
+        try {
+            const message = await CampaignService.rsvp(data)
+            alert(message)
+            onClose()
+        } catch (e) {
+            console.error(e)
+            alert(e.message)
+        }
+        closeLoadingModal()
     }
 
     return (
@@ -172,37 +220,77 @@ function RsvpModal({ visible, campaign, onClose }) {
                     stepIndex === 1 && (
                         <Container textAlign='center'>
                             <Grid padded textAlign='center'>
-                                <Grid.Row>
-                                    <Grid.Column>
-                                        <Rating 
-                                            maxRating={10} 
-                                            defaultRating={7} 
-                                            icon='star'
-                                            size='massive'
-                                        />
-                                    </Grid.Column>
-                                </Grid.Row>
+                                {
+                                    _.get(report, 'campaign.rating', 0) && (
+                                        <Grid.Row>
+                                            <Grid.Column>
+                                                <Rating
+                                                    maxRating={10}
+                                                    // defaultRating={7} 
+                                                    rating={ratingState}
+                                                    icon='star'
+                                                    size='massive'
+                                                    onRate={onRateHandler}
+                                                />
+                                            </Grid.Column>
+                                        </Grid.Row>
+                                    )
+                                }
 
-                                <Grid.Row>
-                                    <Grid.Column>
-                                        <Button.Group size='big'>
-                                            <Button
-                                                color='pink'
-                                                icon='female'
-                                                labelPosition='left'
-                                                content="Girl"
-                                                active
-                                            />
-                                            <Button.Or />
-                                            <Button
-                                                color='blue'
-                                                icon='male'
-                                                labelPosition='right'
-                                                content="Guy"
-                                            />
-                                        </Button.Group>
-                                    </Grid.Column>
-                                </Grid.Row>
+                                {
+                                    _.get(report, 'campaign.gender', 0) && (
+                                        <Grid.Row>
+                                            <Grid.Column>
+                                                <Button.Group size='big'>
+                                                    <Button
+                                                        color='pink'
+                                                        gender='female'
+                                                        icon={
+                                                            <Icon
+                                                                color={genderState === 'female' ? 'green' : 'yellow'}
+                                                                name={genderState === 'female' ? 'checkmark' : 'female'}
+                                                            />
+                                                        }
+                                                        labelPosition='left'
+                                                        content="Girl"
+                                                        active={genderState === 'female'}
+                                                        onClick={genderHandler}
+                                                    />
+                                                    <Button.Or />
+                                                    <Button
+                                                        color='blue'
+                                                        gender='male'
+                                                        icon={
+                                                            <Icon
+                                                                color={genderState === 'male' ? 'green' : 'yellow'}
+                                                                name={genderState === 'male' ? 'checkmark' : 'male'}
+                                                            />
+                                                        }
+                                                        labelPosition='right'
+                                                        content="Guy"
+                                                        active={genderState === 'male'}
+                                                        onClick={genderHandler}
+                                                    />
+                                                </Button.Group>
+                                            </Grid.Column>
+                                        </Grid.Row>
+                                    )
+                                }
+
+                                {
+                                    _.get(report, 'campaign.charge', 0) && (
+                                        <Grid.Row>
+                                            <Grid.Column>
+                                                <Checkbox
+                                                    label='Charge?'
+                                                    toggle
+                                                    checked={chargeState}
+                                                    onChange={chargeHandler}
+                                                />
+                                            </Grid.Column>
+                                        </Grid.Row>
+                                    )
+                                }
                             </Grid>
                         </Container>
                     )
@@ -237,6 +325,8 @@ function RsvpModal({ visible, campaign, onClose }) {
                                 icon='send'
                                 labelPosition='right'
                                 content="Send"
+                                disabled={_.get(report, 'campaign.gender', 0) && !genderState ? true : false}
+                                onClick={sendRsvp}
                             />
                         </Button.Group>
                     )
