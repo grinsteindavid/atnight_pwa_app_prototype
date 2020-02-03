@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Container, Card, Image, Icon, Button, Modal, Step, Grid, Input, Dropdown, Rating, GridRow, Checkbox } from 'semantic-ui-react'
+import { Container, Card, Image, Icon, Button, Modal, Step, Grid, Rating, List, Checkbox } from 'semantic-ui-react'
 import CampaignService from '../services/campaign'
 import _ from 'lodash'
 import PhoneInput from 'react-phone-input-2'
@@ -22,25 +22,42 @@ function ReportScreen({ match, history, openLoadingModal, closeLoadingModal }) {
     }
 
     function closeRsvpModal() {
+        fetchReport()
         setRsvpModal({
             ...rsvpModal,
             visible: false
         })
     }
 
-    useEffect(() => {
-        async function fetchReport() {
-            openLoadingModal('Loading report')
-            try {
-                const report = await CampaignService.report(match.params.id)
-                setReport(report)
-            } catch (e) {
-                console.error(e)
-                alert('Network error')
-            }
-            closeLoadingModal()
+    async function fetchReport() {
+        openLoadingModal('Loading report')
+        try {
+            const report = await CampaignService.report(match.params.id)
+            setReport(report)
+        } catch (e) {
+            console.error(e)
+            alert('Network error')
         }
+        closeLoadingModal()
+    }
 
+    function formatPhoneNumber(str) {
+        //Filter only numbers from the input
+        let cleaned = ('' + str).replace(/\D/g, '');
+
+        //Check if the input is of correct length
+        let match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+
+        if (match) {
+            return '(' + match[1] + ') ' + match[2] + '-' + match[3]
+        };
+
+        return null
+
+        return null;
+    }
+
+    useEffect(() => {
         fetchReport()
     }, [])
 
@@ -92,6 +109,20 @@ function ReportScreen({ match, history, openLoadingModal, closeLoadingModal }) {
                         </Card>
                     )
                 }
+
+                <List divided relaxed>
+                    {reportState.rsvp.map(rsvp => {
+                        return (
+                            <List.Item key={rsvp.id}>
+                                <List.Icon name={rsvp.gender ? 'male' : 'female'} size='large' verticalAlign='middle' />
+                                <List.Content>
+                                    <List.Header as='a'>{formatPhoneNumber(rsvp.phone)}</List.Header>
+                                    <List.Description as='a'>{rsvp.rsvp_on}</List.Description>
+                                </List.Content>
+                            </List.Item>
+                        )
+                    })}
+                </List>
             </Container>
         </>
     )
@@ -105,7 +136,9 @@ function RsvpModal({ visible, report, onClose, openLoadingModal, closeLoadingMod
     const [phoneNumberState, setPhoneNumberState] = useState('')
 
     function phoneNumberHandler(phone) {
-        setPhoneNumberState(phone.match(/\d/g).join(''))
+        if (phone.match(/\d/g) && phone.match(/\d/g).length > 0) {
+            setPhoneNumberState(phone.match(/\d/g).join('')) 
+        }
     }
 
     function stepHandler(e, { index }) {
