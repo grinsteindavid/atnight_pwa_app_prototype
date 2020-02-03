@@ -79,7 +79,7 @@ function App({ history }) {
               : <Redirect to='/login' />
           )
         }} />
-        <Route path="app/report/:id" render={(props) => {
+        <Route path="/report/:id" render={(props) => {
 
           return (
             AuthService.isAuthenticated()
