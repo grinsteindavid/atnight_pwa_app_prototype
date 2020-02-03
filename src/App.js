@@ -62,7 +62,7 @@ function App({ history }) {
 
           return (
             AuthService.isAuthenticated()
-              ? <Redirect to='/' />
+              ? <Redirect to='' />
               : <LoginScreen
                   {...props}
                   setPromoter={setPromoterState}
@@ -79,7 +79,7 @@ function App({ history }) {
               : <Redirect to='/login' />
           )
         }} />
-        <Route path="/report/:id" render={(props) => {
+        <Route path="app/report/:id" render={(props) => {
 
           return (
             AuthService.isAuthenticated()
