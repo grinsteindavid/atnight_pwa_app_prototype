@@ -1,3 +1,15 @@
+body {
+   -webkit-user-select: none;
+}
+
+body {
+   -webkit-tap-highlight-color: transparent;
+}
+
+body {
+   -webkit-touch-callout: none;
+}
+
 @import '~semantic-ui-css/semantic.min.css';
 
 .ui.fullscreen.modal {
